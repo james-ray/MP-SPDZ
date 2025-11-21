@@ -11,84 +11,62 @@ GRID_HEIGHT = 8
 TOTAL_NODES = GRID_WIDTH * GRID_HEIGHT
 MAX_EDGES = TOTAL_NODES * 5
 
-# 障碍物 - 物理障碍
-#obstacles = {9, 10, 11, 17, 25, 33}
+# Obstacles - physical barriers
+obstacles = {9, 10, 11, 17, 25, 33}
 
-# 火警危险区域 - 体现repulsive power
-#fire_repulsion_zones = {
-#    # 高排斥力区域 (repulsive power = 10)
-#    18: 10, 19: 10, 20: 10,
-#    # 中等排斥力区域 (repulsive power = 5)
-#    26: 5, 27: 5, 28: 5,
-#    # 低排斥力区域 (repulsive power = 2)
-#    34: 2, 35: 2, 36: 2
-#}
-
-# 在potential_field_astar.mpc中修改火警区域：
+# Fire repulsion zones - now forcing the path to pass through some low-risk areas
 fire_repulsion_zones = {
-    # 迫使路径必须经过这些低风险节点
-    8: 1,    # 必经 - 低风险
-    16: 2,   # 必经 - 低风险
-    24: 3,   # 必经 - 中低风险
-    32: 2,   # 必经 - 低风险
-    40: 1,   # 必经 - 低风险
-    48: 4,   # 必经 - 中风险
+    # Basic risk areas - all nodes have basic risk
+    0: 1, 1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1,
+    8: 1, 12: 1, 13: 1, 14: 1, 15: 1,
+    16: 1, 20: 1, 21: 1, 22: 1, 23: 1,
+    24: 1, 28: 1, 29: 1, 30: 1, 31: 1,
+    32: 1, 36: 1, 37: 1, 38: 1, 39: 1,
+    40: 1, 44: 1, 45: 1, 46: 1, 47: 1,
+    48: 1, 52: 1, 53: 1, 54: 1, 55: 1,
+    56: 1, 57: 1, 58: 1, 59: 1, 60: 1, 61: 1, 62: 1, 63: 1,
 
-    # 在旁边设置高风险对比区域
-    9: 10, 10: 10, 11: 10,   # 障碍物+高风险
-    17: 10, 25: 10, 33: 10,  # 障碍物+高风险
-    18: 8, 19: 9, 20: 8,     # 高风险
-    26: 7, 27: 8, 28: 7,     # 高风险
-    34: 6, 35: 7, 36: 6,     # 中高风险
+    # High-risk areas
+    18: 10, 19: 10, 26: 8, 27: 9, 34: 6, 35: 7,
+
+    # Medium risk on key paths - forcing algorithm to make trade-offs
+    20: 4, 21: 3, 28: 5, 29: 4, 36: 3, 37: 2
 }
 
-# 用例2: 让路径必须经过一些低风险区域
-#fire_repulsion_zones = {
-#    # 在最短路径上设置低风险火警
-#    1: 2,  2: 3,  3: 1,    # 第一行必经之路
-#    8: 1,  16: 2, 24: 1,   # 左列必经之路
-#    57: 2, 58: 3, 59: 1,   # 终点前必经之路
+start_node = 0
+goal_node = 63
 
-#    # 在旁边设置高风险区域作为对比
-#    9: 8,  10: 9, 11: 8,   # 高风险区域
-#    18: 7, 19: 8, 20: 7,   # 高风险区域
-#    # 其他区域都是0（安全）
-#}
-
-obstacles = {33, 41, 49}  # 少量障碍物
-
-# 吸引力配置 - 目标节点的吸引力 (attractive power隐含在启发式中)
-start_node = 0    # 起始点
-goal_node = 63    # 目标点 - 具有最大吸引力
-
-print_ln('=== INNOVATIVE POTENTIAL FIELD A* SEARCH ===')
+print_ln('=== POTENTIAL FIELD A* SEARCH ===')
 print_ln('GRID_INFO: %s %s', GRID_WIDTH, GRID_HEIGHT)
 print_ln('START_NODE: %s', start_node)
 print_ln('GOAL_NODE: %s', goal_node)
 print_ln('OBSTACLES: 9 10 11 17 25 33')
-print_ln('FIRE_REPULSION_ZONES: 18:10 19:10 20:10 26:5 27:5 28:5 34:2 35:2 36:2')
 
-# 创建图结构 - 融入potential field概念
+# Print fire zone information
+fire_zones_str = ' '.join([f'{k}:{v}' for k, v in fire_repulsion_zones.items()])
+print_ln('FIRE_REPULSION_ZONES: %s', fire_zones_str)
+
+# Create graph structure
 edges = OptimalORAM(MAX_EDGES, entry_size=(log2(TOTAL_NODES), 8, 1))
 e_index = OptimalORAM(TOTAL_NODES, entry_size=log2(MAX_EDGES))
 
 def calculate_potential_field_cost(current_node, neighbor_node):
     """
-    计算势场成本: base_attraction + fire_repulsion
-    - base_attraction: 基础移动成本 (体现空间吸引力)
-    - fire_repulsion: 火警排斥力成本
+    Calculate potential field cost: base_cost + fire_repulsion
     """
-    base_attraction = 1  # 基础空间吸引力
+    base_cost = 1  # Basic movement cost
 
-    # 火警排斥力 - 高火警区域具有强排斥力
-    fire_repulsion = fire_repulsion_zones.get(neighbor_node, 0)
+    # Get fire level of neighbor node
+    fire_repulsion = 0
+    if neighbor_node in fire_repulsion_zones:
+        fire_repulsion = fire_repulsion_zones[neighbor_node]
 
-    # 总成本 = 基础吸引力 + 火警排斥力
-    total_potential_cost = base_attraction + fire_repulsion
+    # Total cost = base cost + fire repulsion
+    total_cost = base_cost + fire_repulsion
 
-    return total_potential_cost
+    return total_cost
 
-# 构建势场增强的图
+# Build potential field enhanced graph
 edge_list = []
 edge_starts = [0] * TOTAL_NODES
 current_edge_index = 0
@@ -98,17 +76,16 @@ for node in range(TOTAL_NODES):
     edge_starts[node] = current_edge_index
 
     if node in obstacles:
-        # 物理障碍 - 无限排斥力 (不可通过)
+        # Physical obstacles - no outgoing edges
         pass
     else:
         x = node % GRID_WIDTH
         y = node // GRID_WIDTH
 
-        # 四个移动方向 - 体现空间探索吸引力
+        # Four movement directions
         directions = [(0, -1), (-1, 0), (1, 0), (0, 1)]
         valid_neighbors = []
 
-        # 发现有效邻居节点
         for dx, dy in directions:
             nx = x + dx
             ny = y + dy
@@ -118,16 +95,16 @@ for node in range(TOTAL_NODES):
                 if neighbor not in obstacles:
                     valid_neighbors.append(neighbor)
 
-        # 为每个邻居计算势场成本
+        # Calculate potential field cost for each neighbor
         for i, neighbor in enumerate(valid_neighbors):
             is_last = 1 if i == len(valid_neighbors) - 1 else 0
 
-            # 使用势场成本函数
+            # Use potential field cost function
             potential_cost = calculate_potential_field_cost(node, neighbor)
             edge_list.append((neighbor, potential_cost, is_last))
             current_edge_index += 1
 
-# 填充图数据
+# Fill graph data
 for i, edge in enumerate(edge_list):
     edges[i] = edge
 
@@ -137,16 +114,16 @@ for node in range(TOTAL_NODES):
 print_ln('TOTAL_EDGES: %s', len(edge_list))
 print_ln('POTENTIAL_FIELD_GRAPH_BUILT')
 
-# 运行势场增强的A*搜索
+# Run potential field enhanced A* search
 print_ln('STARTING_POTENTIAL_FIELD_ASTAR')
 
-# 目标吸引力启发式函数
+# Goal attraction heuristic function
 goal_attraction_heuristic = simple_manhattan_heuristic_factory(sint(goal_node), GRID_WIDTH)
 
 dist, found = astar(sint(start_node), sint(goal_node), edges, e_index,
                     goal_attraction_heuristic, OptimalORAM, n_loops=200)
 
-# 输出结果
+# Output results
 print_ln('POTENTIAL_FIELD_SEARCH_COMPLETE')
 found_value = found.reveal()
 print_ln('PATH_FOUND: %s', found_value)

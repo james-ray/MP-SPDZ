@@ -2,78 +2,294 @@ GRID_INFO: 8 8
 START_NODE: 0
 GOAL_NODE: 63
 OBSTACLES: 9 10 11 17 25 33
-FIRE_REPULSION_ZONES: 18:10 19:10 20:10 26:5 27:5 28:5 34:2 35:2 36:2
+FIRE_REPULSION_ZONES: 0:1 1:1 2:1 3:1 4:1 5:1 6:1 7:1 8:1 12:1 13:1 14:1 15:1 16:1 20:4 21:3 22:1 23:1 24:1 28:5 29:4 30:1 31:1 32:1 36:3 37:2 38:1 39:1 40:1 44:1 45:1 46:1 47:1 48:1 52:1 53:1 54:1 55:1 56:1 57:1 58:1 59:1 60:1 61:1 62:1 63:1 18:10 19:10 26:8 27:9 34:6 35:7
 BUILDING_POTENTIAL_FIELD_GRAPH
 REUSING DATA - ONLY FOR BENCHMARKING
 TOTAL_EDGES: 186
 POTENTIAL_FIELD_GRAPH_BUILT
 STARTING_POTENTIAL_FIELD_ASTAR
+Stopped timer 0 at 0.9441 (23.4427 MB, 108568 rounds)
+Starting timer 1 at 0 (0 MB, 0 rounds) after 2.721e-06
+Stopped timer 1 at 2.335e-06 (0 MB, 0 rounds)
+Starting timer 0 at 0.9441 (23.4427 MB, 108568 rounds) after 3.2583e-05
+Stopped timer 0 at 0.944125 (23.4427 MB, 108568 rounds)
+Starting timer 1 at 2.335e-06 (0 MB, 0 rounds) after 3.6576e-05
+Stopped timer 1 at 4.192e-06 (0 MB, 0 rounds)
+Starting timer 0 at 0.944125 (23.4427 MB, 108568 rounds) after 1.1265e-05
+Stopped timer 0 at 0.944126 (23.4427 MB, 108568 rounds)
+Starting timer 1 at 4.192e-06 (0 MB, 0 rounds) after 8.992e-06
+Stopped timer 1 at 5.614e-06 (0 MB, 0 rounds)
+Starting timer 0 at 0.944126 (23.4427 MB, 108568 rounds) after 9.706e-06
+Stopped timer 0 at 0.944127 (23.4427 MB, 108568 rounds)
+Starting timer 1 at 5.614e-06 (0 MB, 0 rounds) after 8.34e-06
+Stopped timer 1 at 0.0519332 (1.10794 MB, 4988 rounds)
+Starting timer 0 at 0.944127 (23.4427 MB, 108568 rounds) after 0.0519469
+Elapsed time: 0.944129
+Elapsed time: 1.05805
+Elapsed time: 1.16478
+Elapsed time: 1.27621
+Elapsed time: 1.39367
+Elapsed time: 1.50309
+Elapsed time: 1.62331
+Elapsed time: 1.73584
+Elapsed time: 1.84187
+Elapsed time: 1.9488
+Elapsed time: 2.05485
+Elapsed time: 2.15731
+Elapsed time: 2.26728
+Elapsed time: 2.38532
+Elapsed time: 2.49314
+Elapsed time: 2.60589
+Elapsed time: 2.717
+Elapsed time: 2.82714
+Elapsed time: 2.93785
+Elapsed time: 3.05333
+Elapsed time: 3.16439
+Elapsed time: 3.27812
+Elapsed time: 3.38952
+Elapsed time: 3.50443
+Elapsed time: 3.61407
+Elapsed time: 3.71944
+Elapsed time: 3.82444
+Elapsed time: 3.92566
+Elapsed time: 4.02739
+Elapsed time: 4.12912
+Elapsed time: 4.23947
+Elapsed time: 4.35205
+Elapsed time: 4.46333
+Elapsed time: 4.57057
+Elapsed time: 4.68091
+Elapsed time: 4.78426
+Elapsed time: 4.89619
+Elapsed time: 5.00624
+Elapsed time: 5.11588
+Elapsed time: 5.2203
+Elapsed time: 5.3411
+Elapsed time: 5.44458
+Elapsed time: 5.55508
+Elapsed time: 5.6602
+Elapsed time: 5.76339
+Elapsed time: 5.87639
+Elapsed time: 5.9854
+Elapsed time: 6.0931
+Elapsed time: 6.20933
+Elapsed time: 6.31532
+Elapsed time: 6.42249
+Elapsed time: 6.52341
+Elapsed time: 6.62484
+Elapsed time: 6.73735
+Elapsed time: 6.8424
+Elapsed time: 6.95666
+Elapsed time: 7.06827
+Elapsed time: 7.18374
+Elapsed time: 7.28696
+Elapsed time: 7.40212
+Elapsed time: 7.5042
+Elapsed time: 7.60736
+Elapsed time: 7.70536
+Elapsed time: 7.80454
+Elapsed time: 7.90261
+Elapsed time: 8.00692
+Elapsed time: 8.10561
+Elapsed time: 8.21
+Elapsed time: 8.31222
+Elapsed time: 8.41011
+Elapsed time: 8.51918
+Elapsed time: 8.62528
+Elapsed time: 8.72712
+Elapsed time: 8.82977
+Elapsed time: 8.93235
+Elapsed time: 9.02761
+Elapsed time: 9.12602
+Elapsed time: 9.239
+Elapsed time: 9.36215
+Elapsed time: 9.46928
+Elapsed time: 9.57162
+Elapsed time: 9.68381
+Elapsed time: 9.80139
+Elapsed time: 9.90739
+Elapsed time: 10.0264
+Elapsed time: 10.1591
+Elapsed time: 10.2689
+Elapsed time: 10.3753
+Elapsed time: 10.4894
+Elapsed time: 10.6004
+Elapsed time: 10.7111
+Elapsed time: 10.8155
+Elapsed time: 10.9164
+Elapsed time: 11.0264
+Elapsed time: 11.1325
+Elapsed time: 11.2369
+Elapsed time: 11.3398
+Elapsed time: 11.4483
+Elapsed time: 11.5683
+Elapsed time: 11.6925
+Elapsed time: 11.7954
+Elapsed time: 11.9051
+Elapsed time: 12.0145
+Elapsed time: 12.1154
+Elapsed time: 12.2331
+Elapsed time: 12.3556
+Elapsed time: 12.4811
+Elapsed time: 12.5909
+Elapsed time: 12.6995
+Elapsed time: 12.8113
+Elapsed time: 12.9334
+Elapsed time: 13.0423
+Elapsed time: 13.1543
+Elapsed time: 13.2568
+Elapsed time: 13.3588
+Elapsed time: 13.4694
+Elapsed time: 13.5754
+Elapsed time: 13.6849
+Elapsed time: 13.7916
+Elapsed time: 13.9005
+Elapsed time: 14.0233
+Elapsed time: 14.1425
+Elapsed time: 14.2585
+Elapsed time: 14.3642
+Elapsed time: 14.4714
+Elapsed time: 14.5734
+Elapsed time: 14.6874
+Elapsed time: 14.7999
+Elapsed time: 14.9126
+Elapsed time: 15.0156
+Elapsed time: 15.1364
+Elapsed time: 15.2441
+Elapsed time: 15.3551
+Elapsed time: 15.4631
+Elapsed time: 15.5761
+Elapsed time: 15.6884
+Elapsed time: 15.789
+Elapsed time: 15.8943
+Elapsed time: 15.9921
+Elapsed time: 16.0917
+Elapsed time: 16.1889
+Elapsed time: 16.2878
+Elapsed time: 16.3922
+Elapsed time: 16.4948
+Elapsed time: 16.5942
+Elapsed time: 16.6898
+Elapsed time: 16.7924
+Elapsed time: 16.8895
+Elapsed time: 16.9894
+Elapsed time: 17.0939
+Elapsed time: 17.1904
+Elapsed time: 17.2901
+Elapsed time: 17.3858
+Elapsed time: 17.4816
+Elapsed time: 17.5773
+Elapsed time: 17.6743
+Elapsed time: 17.7701
+Elapsed time: 17.8654
+Elapsed time: 17.961
+Elapsed time: 18.0585
+Elapsed time: 18.155
+Elapsed time: 18.2532
+Elapsed time: 18.3497
+Elapsed time: 18.4469
+Elapsed time: 18.5465
+Elapsed time: 18.6429
+Elapsed time: 18.7384
+Elapsed time: 18.8343
+Elapsed time: 18.9336
+Elapsed time: 19.0312
+Elapsed time: 19.1319
+Elapsed time: 19.2461
+Elapsed time: 19.3702
+Elapsed time: 19.4878
+Elapsed time: 19.6027
+Elapsed time: 19.7136
+Elapsed time: 19.8183
+Elapsed time: 19.9311
+Elapsed time: 20.042
+Elapsed time: 20.1413
+Elapsed time: 20.2409
+Elapsed time: 20.3478
+Elapsed time: 20.4522
+Elapsed time: 20.5504
+Elapsed time: 20.6501
+Elapsed time: 20.7498
+Elapsed time: 20.8473
+Elapsed time: 20.9481
+Elapsed time: 21.0519
+Elapsed time: 21.1533
+Elapsed time: 21.2533
+Elapsed time: 21.3804
+Elapsed time: 21.4862
+Elapsed time: 21.59
+Elapsed time: 21.6955
+Elapsed time: 21.8025
+Elapsed time: 21.9071
+Elapsed time: 22.0116
+Elapsed time: 22.1351
+Elapsed time: 22.2382
 POTENTIAL_FIELD_SEARCH_COMPLETE
 PATH_FOUND: 1
 POTENTIAL_FIELD_NODE_DATA:
 NODE_POTENTIAL: 0 0 0
-NODE_POTENTIAL: 1 1 0
-NODE_POTENTIAL: 2 2 1
-NODE_POTENTIAL: 3 3 2
-NODE_POTENTIAL: 4 4 3
-NODE_POTENTIAL: 5 5 4
-NODE_POTENTIAL: 6 6 5
-NODE_POTENTIAL: 7 7 6
+NODE_POTENTIAL: 1 2 0
+NODE_POTENTIAL: 2 4 1
+NODE_POTENTIAL: 3 6 2
+NODE_POTENTIAL: 4 8 3
+NODE_POTENTIAL: 5 10 4
+NODE_POTENTIAL: 6 12 5
+NODE_POTENTIAL: 7 14 6
 NODE_POTENTIAL: 8 2 0
 NODE_POTENTIAL: 9 0 0
 NODE_POTENTIAL: 10 0 0
 NODE_POTENTIAL: 11 0 0
-NODE_POTENTIAL: 12 5 4
-NODE_POTENTIAL: 13 6 5
-NODE_POTENTIAL: 14 7 13
-NODE_POTENTIAL: 15 8 7
-NODE_POTENTIAL: 16 0 0
+NODE_POTENTIAL: 12 10 4
+NODE_POTENTIAL: 13 12 12
+NODE_POTENTIAL: 14 14 6
+NODE_POTENTIAL: 15 16 14
+NODE_POTENTIAL: 16 4 8
 NODE_POTENTIAL: 17 0 0
 NODE_POTENTIAL: 18 0 0
-NODE_POTENTIAL: 19 0 0
-NODE_POTENTIAL: 20 14 12
-NODE_POTENTIAL: 21 7 13
-NODE_POTENTIAL: 22 8 21
-NODE_POTENTIAL: 23 9 15
-NODE_POTENTIAL: 24 0 0
+NODE_POTENTIAL: 19 26 20
+NODE_POTENTIAL: 20 15 12
+NODE_POTENTIAL: 21 16 13
+NODE_POTENTIAL: 22 16 14
+NODE_POTENTIAL: 23 18 15
+NODE_POTENTIAL: 24 6 16
 NODE_POTENTIAL: 25 0 0
 NODE_POTENTIAL: 26 0 0
 NODE_POTENTIAL: 27 0 0
-NODE_POTENTIAL: 28 0 0
-NODE_POTENTIAL: 29 8 21
-NODE_POTENTIAL: 30 9 22
-NODE_POTENTIAL: 31 10 23
-NODE_POTENTIAL: 32 0 0
+NODE_POTENTIAL: 28 21 20
+NODE_POTENTIAL: 29 21 21
+NODE_POTENTIAL: 30 18 22
+NODE_POTENTIAL: 31 20 30
+NODE_POTENTIAL: 32 8 24
 NODE_POTENTIAL: 33 0 0
-NODE_POTENTIAL: 34 0 0
-NODE_POTENTIAL: 35 0 0
-NODE_POTENTIAL: 36 0 0
-NODE_POTENTIAL: 37 11 38
-NODE_POTENTIAL: 38 10 30
-NODE_POTENTIAL: 39 11 31
-NODE_POTENTIAL: 40 0 0
-NODE_POTENTIAL: 41 0 0
-NODE_POTENTIAL: 42 0 0
-NODE_POTENTIAL: 43 0 0
-NODE_POTENTIAL: 44 0 0
-NODE_POTENTIAL: 45 12 46
-NODE_POTENTIAL: 46 11 38
-NODE_POTENTIAL: 47 12 39
-NODE_POTENTIAL: 48 0 0
-NODE_POTENTIAL: 49 0 0
-NODE_POTENTIAL: 50 0 0
-NODE_POTENTIAL: 51 0 0
-NODE_POTENTIAL: 52 0 0
-NODE_POTENTIAL: 53 13 54
-NODE_POTENTIAL: 54 12 46
-NODE_POTENTIAL: 55 13 47
-NODE_POTENTIAL: 56 0 0
-NODE_POTENTIAL: 57 0 0
-NODE_POTENTIAL: 58 0 0
-NODE_POTENTIAL: 59 0 0
-NODE_POTENTIAL: 60 0 0
-NODE_POTENTIAL: 61 14 62
-NODE_POTENTIAL: 62 13 54
-NODE_POTENTIAL: 63 14 55
+NODE_POTENTIAL: 34 19 42
+NODE_POTENTIAL: 35 21 43
+NODE_POTENTIAL: 36 19 44
+NODE_POTENTIAL: 37 20 45
+NODE_POTENTIAL: 38 20 30
+NODE_POTENTIAL: 39 22 31
+NODE_POTENTIAL: 40 10 32
+NODE_POTENTIAL: 41 11 40
+NODE_POTENTIAL: 42 12 41
+NODE_POTENTIAL: 43 13 42
+NODE_POTENTIAL: 44 15 43
+NODE_POTENTIAL: 45 17 44
+NODE_POTENTIAL: 46 19 45
+NODE_POTENTIAL: 47 21 46
+NODE_POTENTIAL: 48 12 40
+NODE_POTENTIAL: 49 12 41
+NODE_POTENTIAL: 50 13 42
+NODE_POTENTIAL: 51 14 50
+NODE_POTENTIAL: 52 16 51
+NODE_POTENTIAL: 53 18 52
+NODE_POTENTIAL: 54 20 53
+NODE_POTENTIAL: 55 22 54
+NODE_POTENTIAL: 56 14 48
+NODE_POTENTIAL: 57 14 49
+NODE_POTENTIAL: 58 15 50
+NODE_POTENTIAL: 59 16 51
+NODE_POTENTIAL: 60 18 59
+NODE_POTENTIAL: 61 20 53
+NODE_POTENTIAL: 62 22 54
+NODE_POTENTIAL: 63 24 55
 END_POTENTIAL_FIELD_SEARCH
 

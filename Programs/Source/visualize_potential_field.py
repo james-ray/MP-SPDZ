@@ -1,4 +1,3 @@
-# visualize_potential_field.py
 import re
 import sys
 
@@ -89,6 +88,18 @@ def reconstruct_path(data):
         return []
 
     return path
+
+
+def calculate_edge_cost(data, from_node, to_node):
+    """正确计算两个节点之间的边成本"""
+    # 基础移动成本
+    base_cost = 1
+
+    # 目标节点的火警排斥力
+    fire_repulsion = data['fire_zones'].get(to_node, 0)
+
+    # 总成本 = 基础成本 + 火警排斥力
+    return base_cost + fire_repulsion
 
 
 def visualize_potential_field(data):
@@ -210,27 +221,60 @@ def visualize_potential_field(data):
 
         print("\nPath Risk Analysis:")
         total_risk = 0
+        actual_path_cost = 0
+        step_details = []
+
         for i, node in enumerate(path):
             y = node // width
             x = node % width
+
+            # 计算这一步的实际成本（从上一个节点到当前节点的边成本）
+            if i > 0:
+                prev_node = path[i - 1]
+                edge_cost = calculate_edge_cost(data, prev_node, node)  # 使用正确的方法
+                actual_path_cost += edge_cost
+            else:
+                edge_cost = 0  # 起点没有边成本
+
             risk_level = data['fire_zones'].get(node, 0)
             total_risk += risk_level
 
             risk_desc = "🔥High" if risk_level >= 8 else "⚠️Medium" if risk_level >= 4 else "✅Low" if risk_level >= 1 else "🟢Safe"
             node_cost = data['node_data'][node]['cost']
+
+            step_details.append({
+                'step': i,
+                'node': node,
+                'x': x,
+                'y': y,
+                'node_cost': node_cost,
+                'edge_cost': edge_cost,
+                'risk_level': risk_level,
+                'risk_desc': risk_desc
+            })
+
             print(
-                f"  Step {i:2d}: Node {node:2d} ({x},{y}) | Cost: {node_cost:2d} | Fire Risk: {risk_level} {risk_desc}")
+                f"  Step {i:2d}: Node {node:2d} ({x},{y}) | NodeCost: {node_cost:2d} | EdgeCost: {edge_cost} | Fire Risk: {risk_level} {risk_desc}")
 
         if data['goal'] in data['node_data']:
             total_cost = data['node_data'][data['goal']]['cost']
             print(f"\n📈 Summary:")
-            print(f"  Total Path Cost: {total_cost}")
+            print(f"  Total Node Cost (A*): {total_cost}")
+            print(f"  Actual Path Cost (Edge Sum): {actual_path_cost}")
             print(f"  Total Fire Risk Exposure: {total_risk}")
-            if total_risk > 0:
-                risk_per_step = total_risk / len(path)
-                print(f"  Average Risk per Step: {risk_per_step:.2f}")
-            else:
+            print(f"  Path Length: {len(path)} steps")
+
+            if len(path) > 0:
+                avg_risk_per_step = total_risk / len(path)
+                avg_cost_per_step = actual_path_cost / (len(path) - 1) if len(path) > 1 else 0
+                print(f"  Average Risk per Step: {avg_risk_per_step:.2f}")
+                print(f"  Average Cost per Step: {avg_cost_per_step:.2f}")
+
+            if total_risk == 0:
                 print(f"  🎉 Perfect Safety: Path avoids all fire risks!")
+            else:
+                safety_efficiency = (len(path) - 1) / total_risk if total_risk > 0 else float('inf')
+                print(f"  Safety Efficiency: {safety_efficiency:.2f} (steps/risk)")
 
     # 势场分析
     print("\nPotential Field Analysis:")
