@@ -1,0 +1,60 @@
+# Example A* search on a simple graph
+
+from oram import OptimalORAM
+from Compiler.astar import astar, manhattan_heuristic_factory
+from Compiler.types import sint
+
+# Use the same graph structure as dijkstra_example
+# Vertices 0,1,2 with weights:
+# 0 -> 1: 5
+# 0 -> 2: 20
+# 1 -> 2: 10
+
+# structure for edges
+edges = OptimalORAM(4, # number of edges
+                    entry_size=(2, # enough bits for vertices
+                                5, # enough bits for costs
+                                1) # always one
+)
+
+# first edge from vertex 0
+edges[0] = (1, 5, 0)
+# second and last edge from vertex 0
+edges[1] = (2, 20, 1)
+# edge from vertex 1
+edges[2] = (2, 10, 1)
+# dummy edge from vertex 2 to itself
+edges[3] = (2, 0, 1)
+
+# structure assigning edge list indices to vertices
+e_index = OptimalORAM(3, # number vertices
+                      entry_size=2) # enough bits for edge indices
+
+# edges from 0 start at 0
+e_index[0] = 0
+# edges from 1 start at 2
+e_index[1] = 2
+# edges from 2 start at 3
+e_index[2] = 3
+
+# A* parameters
+start = sint(0)
+goal = sint(2)
+
+# Create a simple heuristic (for this small graph, use zero heuristic as fallback)
+def simple_heuristic(node):
+    # For this simple case, return 0 to match Dijkstra behavior
+    # In real A*, this would estimate distance to goal
+    return sint(0)
+
+# Run A* search
+dist, found = astar(start, goal, edges, e_index, simple_heuristic, OptimalORAM)
+
+print_ln('A* Search Results:')
+print_ln('Start: %s, Goal: %s', start.reveal(), goal.reveal())
+print_ln('Goal found: %s', found.reveal())
+
+@for_range(dist.size)
+def _(i):
+    cost, prev = dist[i]
+    print_ln('Node %s: cost %s, from %s', i, cost.reveal(), prev.reveal())

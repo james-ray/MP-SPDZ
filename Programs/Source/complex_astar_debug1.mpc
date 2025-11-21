@@ -1,0 +1,104 @@
+# complex_astar_debug.mpc
+from oram import OptimalORAM
+from Compiler.astar import astar, simple_manhattan_heuristic_factory
+from Compiler.types import sint, regint, MemValue, Array
+from Compiler.util import log2
+from Compiler.library import for_range
+
+# 8x8 grid parameters
+GRID_WIDTH = 8
+GRID_HEIGHT = 8
+TOTAL_NODES = GRID_WIDTH * GRID_HEIGHT
+MAX_EDGES = TOTAL_NODES * 5
+
+# 障碍物 - 迷宫式布局，少量开放空间
+obstacles = {
+    # 第一行障碍物
+    1, 2, 3, 4, 5, 6,
+    # 第二行障碍物  
+    8, 10, 11, 12, 13, 14, 15,
+    # 第三行障碍物
+    16, 17, 19, 20, 21, 22, 23,
+    # 第四行障碍物
+    24, 26, 27, 28, 29, 30, 31,
+    # 第五行障碍物
+    32, 33, 34, 36, 37, 38, 39,
+    # 第六行障碍物
+    40, 42, 43, 44, 45, 46, 47,
+    # 第七行障碍物
+    48, 49, 50, 51, 53, 54, 55,
+    # 只有这些节点是开放的：0, 9, 18, 25, 35, 41, 52, 56-63
+}
+
+# 起点和终点 - 需要绕行迷宫
+start_node = 0    # 左上角 (0,0)
+goal_node = 63    # 右下角 (7,7)
+
+# 输出基本信息
+print_ln('GRID_INFO: %s %s', GRID_WIDTH, GRID_HEIGHT)
+print_ln('START_NODE: %s', start_node)
+print_ln('GOAL_NODE: %s', goal_node)
+print_ln('OBSTACLES: 1 2 3 4 5 6 8 10 11 12 13 14 15 16 17 19 20 21 22 23 24 26 27 28 29 30 31 32 33 34 36 37 38 39 40 42 43 44 45 46 47 48 49 50 51 53 54 55')
+
+# 创建图
+edges = OptimalORAM(MAX_EDGES, entry_size=(log2(TOTAL_NODES), 8, 1))
+e_index = OptimalORAM(TOTAL_NODES, entry_size=log2(MAX_EDGES))
+
+# 构建图的逻辑
+edge_list = []
+edge_starts = [0] * TOTAL_NODES
+current_edge_index = 0
+
+for node in range(TOTAL_NODES):
+    edge_starts[node] = current_edge_index
+
+    if node in obstacles:
+        pass  # 障碍物没有出边
+    else:
+        x = node % GRID_WIDTH
+        y = node // GRID_WIDTH
+        directions = [(0, -1), (-1, 0), (1, 0), (0, 1)]
+        valid_neighbors = []
+
+        for dx, dy in directions:
+            nx = x + dx
+            ny = y + dy
+            if 0 <= nx < GRID_WIDTH and 0 <= ny < GRID_HEIGHT:
+                neighbor = ny * GRID_WIDTH + nx
+                if neighbor not in obstacles:
+                    valid_neighbors.append(neighbor)
+
+        for i, neighbor in enumerate(valid_neighbors):
+            is_last = 1 if i == len(valid_neighbors) - 1 else 0
+            edge_list.append((neighbor, 1, is_last))
+            current_edge_index += 1
+
+# 填充图数据
+for i, edge in enumerate(edge_list):
+    edges[i] = edge
+
+for node in range(TOTAL_NODES):
+    e_index[node] = edge_starts[node]
+
+print_ln('TOTAL_EDGES: %s', len(edge_list))
+
+# 运行A*搜索
+heuristic_func = simple_manhattan_heuristic_factory(sint(goal_node), GRID_WIDTH)
+
+print_ln('STARTING_ASTAR')
+dist, found = astar(sint(start_node), sint(goal_node), edges, e_index,
+                    heuristic_func, OptimalORAM, n_loops=200)
+
+# 输出结果
+print_ln('SEARCH_COMPLETE')
+found_value = found.reveal()
+print_ln('FOUND: %s', found_value)
+
+print_ln('ALL_NODE_DATA:')
+for i in range(TOTAL_NODES):
+    cost, prev = dist[i]
+    cost_val = cost.reveal()
+    prev_val = prev.reveal()
+    print_ln('NODE_DATA: %s %s %s', i, cost_val, prev_val)
+
+print_ln('END')

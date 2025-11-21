@@ -1,0 +1,121 @@
+# complex_astar_debug.mpc
+from oram import OptimalORAM
+from Compiler.astar import astar, simple_manhattan_heuristic_factory
+from Compiler.types import sint, regint, MemValue
+from Compiler.util import log2
+from Compiler.library import if_e, else_, for_range
+
+# 8x8 grid parameters
+GRID_WIDTH = 8
+GRID_HEIGHT = 8
+TOTAL_NODES = GRID_WIDTH * GRID_HEIGHT
+
+# 简化的障碍物 - 减少复杂度
+OBSTACLES = [
+    9, 10, 11,    # 只保留第一行的障碍物
+]
+
+# 简化的地形成本
+def get_terrain_cost(node):
+    if node in OBSTACLES:
+        return 100
+    else:
+        return 1
+
+# 简化的边计算 - 只使用4方向
+def count_edges():
+    total_edges = 0
+    for node in range(TOTAL_NODES):
+        if node in OBSTACLES:
+            total_edges += 1
+        else:
+            x, y = node % GRID_WIDTH, node // GRID_WIDTH
+            # 只使用4方向，减少复杂度
+            for dx, dy in [(0,-1), (-1,0), (1,0), (0,1)]:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < GRID_WIDTH and 0 <= ny < GRID_HEIGHT:
+                    neighbor = ny * GRID_WIDTH + nx
+                    if neighbor not in OBSTACLES:
+                        total_edges += 1
+    return total_edges
+
+total_edges = count_edges()
+print_ln('DEBUG: Simplified 8x8 Grid A* Search')
+print_ln('Grid size: %sx%s, Total nodes: %s, Total edges: %s',
+         GRID_WIDTH, GRID_HEIGHT, TOTAL_NODES, total_edges)
+print_ln('Obstacles: %s', OBSTACLES)
+
+# 创建简化的图
+edges = OptimalORAM(total_edges,
+                    entry_size=(log2(TOTAL_NODES), 8, 1))
+
+e_index = OptimalORAM(TOTAL_NODES, entry_size=log2(total_edges))
+
+# 填充图
+edge_index = 0
+for node in range(TOTAL_NODES):
+    start_index = edge_index
+
+    if node in OBSTACLES:
+        edges[edge_index] = (node, 100, 1)
+        edge_index += 1
+    else:
+        x, y = node % GRID_WIDTH, node // GRID_WIDTH
+        neighbors = []
+
+        # 只使用4方向
+        for dx, dy in [(0,-1), (-1,0), (1,0), (0,1)]:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < GRID_WIDTH and 0 <= ny < GRID_HEIGHT:
+                neighbor = ny * GRID_WIDTH + nx
+                if neighbor not in OBSTACLES:
+                    terrain_cost = get_terrain_cost(neighbor)
+                    total_cost = 1 * terrain_cost  # 固定基础成本
+                    neighbors.append((neighbor, total_cost))
+
+        for i, (neighbor, cost) in enumerate(neighbors):
+            is_last = 1 if i == len(neighbors) - 1 else 0
+            edges[edge_index] = (neighbor, cost, is_last)
+            edge_index += 1
+
+    e_index[node] = start_index
+
+# 使用更简单的起点和终点
+start_node = 0    # Top-left corner
+goal_node = 7     # 改为第一行最右边，减少路径长度
+
+print_ln('DEBUG: Start: %s (row %s, col %s)',
+         start_node, start_node // GRID_WIDTH, start_node % GRID_WIDTH)
+print_ln('DEBUG: Goal: %s (row %s, col %s)',
+         goal_node, goal_node // GRID_WIDTH, goal_node % GRID_WIDTH)
+
+# 创建启发式函数
+heuristic_func = simple_manhattan_heuristic_factory(sint(goal_node), GRID_WIDTH)
+
+print_ln('DEBUG: Starting A* search...')
+
+# 运行A*搜索，限制最大循环次数
+max_loops = 100  # 限制循环次数
+dist, found = astar(sint(start_node), sint(goal_node), edges, e_index, 
+                    heuristic_func, OptimalORAM, n_loops=max_loops)
+
+print_ln('DEBUG: A* search completed')
+
+# 显示结果
+found_value = found.reveal()
+print_ln('DEBUG: Goal found: %s', found_value)
+
+start_cost, start_prev = dist[start_node]
+goal_cost, goal_prev = dist[goal_node]
+
+print_ln('DEBUG: Start node - cost: %s', start_cost.reveal())
+print_ln('DEBUG: Goal node - cost: %s, previous: %s', goal_cost.reveal(), goal_prev.reveal())
+
+@if_e(found_value != 0)
+def _():
+    print_ln('SUCCESS: Path found to goal!')
+@else_
+def _():
+    print_ln('FAILED: No path found to goal')
+
+print_ln('DEBUG: Program completed')

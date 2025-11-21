@@ -1,0 +1,191 @@
+# Complex 8x8 grid A* example with 8-direction movement
+
+from oram import OptimalORAM
+from Compiler.astar import astar, simple_manhattan_heuristic_factory
+from Compiler.types import sint, regint, MemValue
+from Compiler.util import log2
+from Compiler.library import if_, for_range
+
+# 8x8 grid parameters
+GRID_WIDTH = 8
+GRID_HEIGHT = 8
+TOTAL_NODES = GRID_WIDTH * GRID_HEIGHT
+
+# Define some obstacles (walls) - these will have very high cost
+OBSTACLES = [
+    9, 10, 11,    # Row 1 obstacles
+    17, 18,       # Row 2 obstacles
+    25, 26, 27,   # Row 3 obstacles
+    33, 34,       # Row 4 obstacles
+    41, 42, 43,   # Row 5 obstacles,
+]
+
+# Define different terrain costs
+def get_terrain_cost(node):
+    """Return different costs based on terrain type"""
+    if node in OBSTACLES:
+        return 100  # Very high cost for obstacles (effectively blocked)
+    elif node % GRID_WIDTH == 0 or node % GRID_WIDTH == GRID_WIDTH - 1:
+        return 3    # Higher cost for border cells
+    elif node // GRID_WIDTH == 0 or node // GRID_WIDTH == GRID_HEIGHT - 1:
+        return 3    # Higher cost for border cells
+    elif node % 3 == 0:
+        return 2    # Moderate cost for some cells
+    else:
+        return 1    # Normal cost for most cells
+
+# Calculate total number of edges (8 directions per node, minus obstacles)
+def count_edges():
+    total_edges = 0
+    for node in range(TOTAL_NODES):
+        if node in OBSTACLES:
+            total_edges += 1  # Self-loop for obstacles
+        else:
+            x, y = node % GRID_WIDTH, node // GRID_WIDTH
+            # Check 8 possible directions
+            for dx, dy in [(-1,-1), (0,-1), (1,-1), (-1,0), (1,0), (-1,1), (0,1), (1,1)]:
+                nx, ny = x + dx, y + dy
+                if 0 <= nx < GRID_WIDTH and 0 <= ny < GRID_HEIGHT:
+                    neighbor = ny * GRID_WIDTH + nx
+                    if neighbor not in OBSTACLES:
+                        total_edges += 1
+    return total_edges
+
+total_edges = count_edges()
+print_ln('8x8 Grid A* Search')
+print_ln('Grid size: %sx%s, Total nodes: %s, Total edges: %s',
+         GRID_WIDTH, GRID_HEIGHT, TOTAL_NODES, total_edges)
+print_ln('Obstacles: %s', OBSTACLES)
+
+# Create edges ORAM
+edges = OptimalORAM(total_edges,
+                    entry_size=(log2(TOTAL_NODES),  # enough bits for nodes
+                                8,                  # enough bits for costs (up to 100)
+                                1))                 # last edge flag
+
+# Create vertex index ORAM
+e_index = OptimalORAM(TOTAL_NODES,
+                      entry_size=log2(total_edges)) # enough bits for edge indices
+
+# Populate the graph
+edge_index = 0
+for node in range(TOTAL_NODES):
+    start_index = edge_index
+
+    if node in OBSTACLES:
+        # Obstacle node: just self-loop with high cost
+        edges[edge_index] = (node, 100, 1)  # High cost, last edge
+        edge_index += 1
+    else:
+        x, y = node % GRID_WIDTH, node // GRID_WIDTH
+        neighbors = []
+
+        # 8-direction movement with different costs
+        directions = [
+            (-1, -1, 1.4),  # Diagonal: cost sqrt(2) ≈ 1.4
+            (0, -1, 1),     # Up
+            (1, -1, 1.4),   # Diagonal
+            (-1, 0, 1),     # Left
+            (1, 0, 1),      # Right
+            (-1, 1, 1.4),   # Diagonal
+            (0, 1, 1),      # Down
+            (1, 1, 1.4)     # Diagonal
+        ]
+
+        for dx, dy, base_cost in directions:
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < GRID_WIDTH and 0 <= ny < GRID_HEIGHT:
+                neighbor = ny * GRID_WIDTH + nx
+                if neighbor not in OBSTACLES:
+                    # Combine base movement cost with terrain cost
+                    terrain_cost = get_terrain_cost(neighbor)
+                    total_cost = int(base_cost * terrain_cost)
+                    neighbors.append((neighbor, total_cost))
+
+        # Add edges to ORAM
+        for i, (neighbor, cost) in enumerate(neighbors):
+            is_last = 1 if i == len(neighbors) - 1 else 0
+            edges[edge_index] = (neighbor, cost, is_last)
+            edge_index += 1
+
+    # Set edge index for this vertex
+    e_index[node] = start_index
+
+# A* parameters - interesting start and goal positions
+start_node = 0    # Top-left corner
+goal_node = 63    # Bottom-right corner
+
+print_ln('Start: %s (row %s, col %s)',
+         start_node, start_node // GRID_WIDTH, start_node % GRID_WIDTH)
+print_ln('Goal: %s (row %s, col %s)',
+         goal_node, goal_node // GRID_WIDTH, goal_node % GRID_WIDTH)
+
+# Create Manhattan heuristic
+heuristic_func = simple_manhattan_heuristic_factory(sint(goal_node), GRID_WIDTH)
+
+# Run A* search
+dist, found = astar(sint(start_node), sint(goal_node), edges, e_index, heuristic_func, OptimalORAM)
+
+print_ln('\n=== A* Search Results ===')
+
+# 使用MP-SPDZ的安全条件判断
+found_value = found.reveal()
+print_ln('Goal found: %s', found_value)
+
+# 显示起点和终点的基本信息
+start_cost, start_prev = dist[start_node]
+goal_cost, goal_prev = dist[goal_node]
+
+print_ln('Start node - cost: %s', start_cost.reveal())
+print_ln('Goal node - cost: %s, previous: %s', goal_cost.reveal(), goal_prev.reveal())
+
+# 显示网格配置信息
+print_ln('\n=== Grid Configuration ===')
+print_ln('Grid size: %sx%s', GRID_WIDTH, GRID_HEIGHT)
+print_ln('Start: node %s (row %s, col %s)', start_node, start_node // GRID_WIDTH, start_node % GRID_WIDTH)
+print_ln('Goal: node %s (row %s, col %s)', goal_node, goal_node // GRID_WIDTH, goal_node % GRID_WIDTH)
+print_ln('Total obstacles: %s', len(OBSTACLES))
+
+# 使用MP-SPDZ安全循环统计可达节点 - 简化版本
+print_ln('\n=== Reachability Statistics ===')
+
+reachable_count = MemValue(regint(0))
+
+@for_range(TOTAL_NODES)
+def _(i):
+    cost, prev = dist[i]
+    cost_val = cost.reveal()
+
+    # 使用单个简单条件判断
+    @if_(cost_val < 1000)
+    def _():
+        reachable_count.iadd(1)
+
+print_ln('Reachable nodes: %s', reachable_count)
+
+# 使用MP-SPDZ条件判断显示最终结果 - 避免使用 @else_
+print_ln('\n=== A* Algorithm Final Statistics ===')
+print_ln('Total nodes in graph: %s', TOTAL_NODES)
+print_ln('Total edges in graph: %s', total_edges)
+
+# 正确的 MP-SPDZ 条件判断方式
+@if_e(found_value != 0)
+def _():
+    print_ln('Path finding result: SUCCESS')
+    print_ln('Path cost to goal: %s', goal_cost.reveal())
+@else_
+def _():
+    print_ln('Path finding result: FAILED')
+
+# 显示障碍物信息 - 使用普通Python循环（编译时已知信息）
+print_ln('\n=== Obstacles Information ===')
+
+# 对于编译时已知的信息，可以使用普通Python循环
+for obs in OBSTACLES:
+    cost, prev = dist[obs]
+    row = obs // GRID_WIDTH
+    col = obs % GRID_WIDTH
+    cost_val = cost.reveal()
+    print_ln('Obstacle %s (row %s, col %s) - cost: %s', obs, row, col, cost_val)
+
+print_ln('\n=== A* Search Completed ===')

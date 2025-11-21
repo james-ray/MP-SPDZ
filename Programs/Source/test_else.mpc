@@ -1,0 +1,29 @@
+# test_else_correct.mpc
+from Compiler.library import if_e, else_
+from Compiler.types import regint
+
+print_ln('=== Testing @if_e and @else_ functionality ===')
+
+# 测试1：基本 if-else
+test_value = regint(1)
+print_ln('Test 1: Basic if_e-else with value = %s', test_value)
+
+@if_e(test_value != 0)
+def _():
+    print_ln('  Condition is TRUE')
+@else_
+def _():
+    print_ln('  Condition is FALSE')
+
+# 测试2：另一个值
+test_value2 = regint(0)
+print_ln('Test 2: Basic if_e-else with value = %s', test_value2)
+
+@if_e(test_value2 != 0)
+def _():
+    print_ln('  Condition is TRUE')
+@else_
+def _():
+    print_ln('  Condition is FALSE')
+
+print_ln('=== Test completed ===')

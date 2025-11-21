@@ -1,0 +1,161 @@
+# potential_field_astar.mpc
+from oram import OptimalORAM
+from Compiler.astar import astar, simple_manhattan_heuristic_factory
+from Compiler.types import sint, regint, MemValue, Array
+from Compiler.util import log2
+from Compiler.library import for_range
+
+# 8x8 grid parameters
+GRID_WIDTH = 8
+GRID_HEIGHT = 8
+TOTAL_NODES = GRID_WIDTH * GRID_HEIGHT
+MAX_EDGES = TOTAL_NODES * 5
+
+# 障碍物 - 物理障碍
+#obstacles = {9, 10, 11, 17, 25, 33}
+
+# 火警危险区域 - 体现repulsive power
+#fire_repulsion_zones = {
+#    # 高排斥力区域 (repulsive power = 10)
+#    18: 10, 19: 10, 20: 10,
+#    # 中等排斥力区域 (repulsive power = 5)
+#    26: 5, 27: 5, 28: 5,
+#    # 低排斥力区域 (repulsive power = 2)
+#    34: 2, 35: 2, 36: 2
+#}
+
+# 在potential_field_astar.mpc中修改火警区域：
+fire_repulsion_zones = {
+    # 迫使路径必须经过这些低风险节点
+    8: 1,    # 必经 - 低风险
+    16: 2,   # 必经 - 低风险
+    24: 3,   # 必经 - 中低风险
+    32: 2,   # 必经 - 低风险
+    40: 1,   # 必经 - 低风险
+    48: 4,   # 必经 - 中风险
+
+    # 在旁边设置高风险对比区域
+    9: 10, 10: 10, 11: 10,   # 障碍物+高风险
+    17: 10, 25: 10, 33: 10,  # 障碍物+高风险
+    18: 8, 19: 9, 20: 8,     # 高风险
+    26: 7, 27: 8, 28: 7,     # 高风险
+    34: 6, 35: 7, 36: 6,     # 中高风险
+}
+
+# 用例2: 让路径必须经过一些低风险区域
+#fire_repulsion_zones = {
+#    # 在最短路径上设置低风险火警
+#    1: 2,  2: 3,  3: 1,    # 第一行必经之路
+#    8: 1,  16: 2, 24: 1,   # 左列必经之路
+#    57: 2, 58: 3, 59: 1,   # 终点前必经之路
+
+#    # 在旁边设置高风险区域作为对比
+#    9: 8,  10: 9, 11: 8,   # 高风险区域
+#    18: 7, 19: 8, 20: 7,   # 高风险区域
+#    # 其他区域都是0（安全）
+#}
+
+obstacles = {33, 41, 49}  # 少量障碍物
+
+# 吸引力配置 - 目标节点的吸引力 (attractive power隐含在启发式中)
+start_node = 0    # 起始点
+goal_node = 63    # 目标点 - 具有最大吸引力
+
+print_ln('=== INNOVATIVE POTENTIAL FIELD A* SEARCH ===')
+print_ln('GRID_INFO: %s %s', GRID_WIDTH, GRID_HEIGHT)
+print_ln('START_NODE: %s', start_node)
+print_ln('GOAL_NODE: %s', goal_node)
+print_ln('OBSTACLES: 9 10 11 17 25 33')
+print_ln('FIRE_REPULSION_ZONES: 18:10 19:10 20:10 26:5 27:5 28:5 34:2 35:2 36:2')
+
+# 创建图结构 - 融入potential field概念
+edges = OptimalORAM(MAX_EDGES, entry_size=(log2(TOTAL_NODES), 8, 1))
+e_index = OptimalORAM(TOTAL_NODES, entry_size=log2(MAX_EDGES))
+
+def calculate_potential_field_cost(current_node, neighbor_node):
+    """
+    计算势场成本: base_attraction + fire_repulsion
+    - base_attraction: 基础移动成本 (体现空间吸引力)
+    - fire_repulsion: 火警排斥力成本
+    """
+    base_attraction = 1  # 基础空间吸引力
+
+    # 火警排斥力 - 高火警区域具有强排斥力
+    fire_repulsion = fire_repulsion_zones.get(neighbor_node, 0)
+
+    # 总成本 = 基础吸引力 + 火警排斥力
+    total_potential_cost = base_attraction + fire_repulsion
+
+    return total_potential_cost
+
+# 构建势场增强的图
+edge_list = []
+edge_starts = [0] * TOTAL_NODES
+current_edge_index = 0
+
+print_ln('BUILDING_POTENTIAL_FIELD_GRAPH')
+for node in range(TOTAL_NODES):
+    edge_starts[node] = current_edge_index
+
+    if node in obstacles:
+        # 物理障碍 - 无限排斥力 (不可通过)
+        pass
+    else:
+        x = node % GRID_WIDTH
+        y = node // GRID_WIDTH
+
+        # 四个移动方向 - 体现空间探索吸引力
+        directions = [(0, -1), (-1, 0), (1, 0), (0, 1)]
+        valid_neighbors = []
+
+        # 发现有效邻居节点
+        for dx, dy in directions:
+            nx = x + dx
+            ny = y + dy
+
+            if 0 <= nx < GRID_WIDTH and 0 <= ny < GRID_HEIGHT:
+                neighbor = ny * GRID_WIDTH + nx
+                if neighbor not in obstacles:
+                    valid_neighbors.append(neighbor)
+
+        # 为每个邻居计算势场成本
+        for i, neighbor in enumerate(valid_neighbors):
+            is_last = 1 if i == len(valid_neighbors) - 1 else 0
+
+            # 使用势场成本函数
+            potential_cost = calculate_potential_field_cost(node, neighbor)
+            edge_list.append((neighbor, potential_cost, is_last))
+            current_edge_index += 1
+
+# 填充图数据
+for i, edge in enumerate(edge_list):
+    edges[i] = edge
+
+for node in range(TOTAL_NODES):
+    e_index[node] = edge_starts[node]
+
+print_ln('TOTAL_EDGES: %s', len(edge_list))
+print_ln('POTENTIAL_FIELD_GRAPH_BUILT')
+
+# 运行势场增强的A*搜索
+print_ln('STARTING_POTENTIAL_FIELD_ASTAR')
+
+# 目标吸引力启发式函数
+goal_attraction_heuristic = simple_manhattan_heuristic_factory(sint(goal_node), GRID_WIDTH)
+
+dist, found = astar(sint(start_node), sint(goal_node), edges, e_index,
+                    goal_attraction_heuristic, OptimalORAM, n_loops=200)
+
+# 输出结果
+print_ln('POTENTIAL_FIELD_SEARCH_COMPLETE')
+found_value = found.reveal()
+print_ln('PATH_FOUND: %s', found_value)
+
+print_ln('POTENTIAL_FIELD_NODE_DATA:')
+for i in range(TOTAL_NODES):
+    cost, prev = dist[i]
+    cost_val = cost.reveal()
+    prev_val = prev.reveal()
+    print_ln('NODE_POTENTIAL: %s %s %s', i, cost_val, prev_val)
+
+print_ln('END_POTENTIAL_FIELD_SEARCH')
